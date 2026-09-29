@@ -61,18 +61,63 @@ local function ApplyChatSetup()
     DB.prompted = true
 end
 
-StaticPopupDialogs["CHATSETUP_PROMPT"] = {
-    text = "Set up default chat options for this character?\n\nA 'Spam' window will be created and General will only show LocalDefense.",
-    button1 = "Yes",
-    button2 = "No",
-    OnAccept = ApplyChatSetup,
-    OnCancel = function()
+local function CreatePromptDialog()
+    local f = CreateFrame("Frame", "ChatSetupForeverPrompt", UIParent)
+    f:SetWidth(360)
+    f:SetHeight(140)
+    f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+    f:SetFrameStrata("DIALOG")
+    f:SetFrameLevel(100)
+    f:EnableMouse(true)
+    f:SetMovable(false)
+
+    local bg = f:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints(f)
+    bg:SetTexture(0, 0, 0, 0.85)
+
+    local border = f:CreateTexture(nil, "BORDER")
+    border:SetPoint("TOPLEFT", f, "TOPLEFT", -2, 2)
+    border:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 2, -2)
+    border:SetTexture("Interface\\DialogFrame\\UI-DialogBox-Border")
+
+    local header = f:CreateTexture(nil, "ARTWORK")
+    header:SetTexture("Interface\\DialogFrame\\UI-DialogBox-Header")
+    header:SetWidth(256)
+    header:SetHeight(64)
+    header:SetPoint("TOP", f, "TOP", 0, 18)
+
+    local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    title:SetPoint("TOP", header, "TOP", 0, -14)
+    title:SetText("Chat Setup")
+
+    local text = f:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    text:SetPoint("TOP", f, "TOP", 0, -20)
+    text:SetWidth(320)
+    text:SetJustifyH("CENTER")
+    text:SetText("Set up default chat options for this character?\n\nA 'Spam' window will be created and General will only show LocalDefense.")
+
+    local yes = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+    yes:SetWidth(80)
+    yes:SetHeight(22)
+    yes:SetPoint("BOTTOM", f, "BOTTOM", -50, 15)
+    yes:SetText("Yes")
+    yes:SetScript("OnClick", function()
+        ApplyChatSetup()
+        f:Hide()
+    end)
+
+    local no = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+    no:SetWidth(80)
+    no:SetHeight(22)
+    no:SetPoint("BOTTOM", f, "BOTTOM", 50, 15)
+    no:SetText("No")
+    no:SetScript("OnClick", function()
         DB.prompted = true
-    end,
-    timeout = 0,
-    whileDead = 1,
-    hideOnEscape = 1,
-}
+        f:Hide()
+    end)
+
+    return f
+end
 
 setupFrame:RegisterEvent("PLAYER_LOGIN")
 setupFrame:SetScript("OnEvent", function()
@@ -86,6 +131,7 @@ setupFrame:SetScript("OnEvent", function()
 
     if not DB.prompted and not promptShown then
         promptShown = true
-        StaticPopup_Show("CHATSETUP_PROMPT")
+        local dialog = CreatePromptDialog()
+        dialog:Show()
     end
 end)
