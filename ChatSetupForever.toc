@@ -1,0 +1,5 @@
+## Interface: 11200
+## Title: Chat Setup Forever
+## Notes: One-time default chat setup for new characters
+## SavedVariablesPerCharacter: ChatSetupForeverDB
+ChatSetupForever.lua
