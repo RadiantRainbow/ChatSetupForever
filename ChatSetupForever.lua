@@ -71,14 +71,15 @@ local function ApplyChatSetup()
 end
 
 local function CreatePromptDialog()
-    local f = _G["ChatSetupForeverPrompt"]
-    if f then
-        f:Show()
-        f:Raise()
-        return f
+    local existing = _G["ChatSetupForeverPrompt"]
+    if existing then
+        existing:Show()
+        existing:Raise()
+        Debug("Reusing existing dialog.")
+        return existing
     end
 
-    f = CreateFrame("Frame", "ChatSetupForeverPrompt", UIParent, "BackdropTemplate")
+    local f = CreateFrame("Frame", "ChatSetupForeverPrompt", UIParent, "BackdropTemplate")
     f:SetSize(360, 150)
     f:ClearAllPoints()
     f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
@@ -89,30 +90,25 @@ local function CreatePromptDialog()
     f:RegisterForDrag("LeftButton")
     f:SetScript("OnDragStart", f.StartMoving)
     f:SetScript("OnDragStop", f.StopMovingOrSizing)
-    f:Show()
 
     f:SetBackdrop({
-        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+        bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
         tile = true,
-        tileSize = 32,
-        edgeSize = 32,
-        insets = { left = 11, right = 12, top = 12, bottom = 11 }
+        tileSize = 16,
+        edgeSize = 16,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
     })
+    f:SetBackdropColor(0, 0, 0, 0.9)
 
     tinsert(UISpecialFrames, f:GetName())
 
-    local header = f:CreateTexture(nil, "ARTWORK")
-    header:SetTexture("Interface\\DialogFrame\\UI-DialogBox-Header")
-    header:SetSize(256, 64)
-    header:SetPoint("TOP", f, "TOP", 0, 12)
-
     local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    title:SetPoint("TOP", header, "TOP", 0, -14)
+    title:SetPoint("TOP", f, "TOP", 0, -14)
     title:SetText("Chat Setup")
 
     local text = f:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-    text:SetPoint("TOP", f, "TOP", 0, -22)
+    text:SetPoint("TOP", f, "TOP", 0, -35)
     text:SetWidth(320)
     text:SetJustifyH("CENTER")
     text:SetText("Set up default chat options for this character?\n\nA 'Spam' window will be created and General will only show LocalDefense.")
@@ -138,6 +134,8 @@ local function CreatePromptDialog()
         DB.prompted = true
     end)
 
+    f:Show()
+
     return f
 end
 
@@ -151,15 +149,16 @@ local function ShowPrompt()
     local dialog = CreatePromptDialog()
     dialog:Show()
     dialog:Raise()
+
     C_Timer.After(0, function()
-        if dialog:IsShown() then
-            Debug("Dialog is shown.")
-        else
-            Debug("Dialog is NOT shown.")
-        end
-        Debug("Dialog size: " .. dialog:GetWidth() .. "x" .. dialog:GetHeight())
-        local x, y = dialog:GetCenter()
-        Debug("Dialog center: " .. (x or "nil") .. ", " .. (y or "nil"))
+        Debug("Dialog IsShown: " .. tostring(dialog:IsShown()))
+        Debug("Dialog IsVisible: " .. tostring(dialog:IsVisible()))
+        Debug("Dialog parent: " .. tostring(dialog:GetParent()))
+        Debug("Dialog parent visible: " .. tostring(dialog:GetParent() and dialog:GetParent():IsVisible()))
+        Debug("Dialog alpha: " .. tostring(dialog:GetAlpha()))
+        Debug("Dialog scale: " .. tostring(dialog:GetEffectiveScale()))
+        local left, bottom, width, height = dialog:GetRect()
+        Debug("Dialog rect: " .. (left or "nil") .. ", " .. (bottom or "nil") .. ", " .. (width or "nil") .. ", " .. (height or "nil"))
     end)
 end
 
