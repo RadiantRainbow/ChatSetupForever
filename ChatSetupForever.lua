@@ -54,11 +54,11 @@ local function ApplyChatSetup()
         while i <= #channels do
             local id = channels[i]
             local name = channels[i + 1]
-            i = i + 2
+            i = i + 3
 
-            if name and name ~= "" then
+            if type(name) == "string" and name ~= "" then
                 if not string.find(name, "LocalDefense") then
-                    ChatFrame_RemoveChannel(ChatFrame1, name)
+                    ChatFrame1:RemoveChannel(name)
                 end
                 spamFrame:AddChannel(name)
             end
