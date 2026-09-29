@@ -3,6 +3,7 @@ local addonName = "ChatSetupForever"
 local DB
 local setupFrame = CreateFrame("Frame")
 local promptShown = false
+local channelWaitTicker
 
 local function GetChatFrameByName(name)
     for i = 1, NUM_CHAT_WINDOWS do
@@ -19,17 +20,17 @@ local function HasChannels()
 end
 
 local function ApplyChatSetup()
-    setupFrame:SetScript("OnUpdate", nil)
+    if channelWaitTicker then
+        channelWaitTicker:Cancel()
+        channelWaitTicker = nil
+    end
 
     if not HasChannels() then
-        local elapsed = 0
-        setupFrame:SetScript("OnUpdate", function(self, dt)
-            elapsed = elapsed + dt
-            if elapsed >= 0.5 then
-                elapsed = 0
-                if HasChannels() then
-                    ApplyChatSetup()
-                end
+        channelWaitTicker = C_Timer.NewTicker(0.5, function()
+            if HasChannels() then
+                channelWaitTicker:Cancel()
+                channelWaitTicker = nil
+                ApplyChatSetup()
             end
         end)
         return

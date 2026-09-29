@@ -1,4 +1,4 @@
-## Interface: 11200
+## Interface: 16001
 ## Title: Chat Setup Forever
 ## Notes: One-time default chat setup for new characters
 ## SavedVariablesPerCharacter: ChatSetupForeverDB
