@@ -57,41 +57,39 @@ local function ApplyChatSetup()
             end
         end
     end
-
-    DB.prompted = true
 end
 
 local function CreatePromptDialog()
     local f = CreateFrame("Frame", "ChatSetupForeverPrompt", UIParent)
     f:SetWidth(360)
-    f:SetHeight(140)
-    f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+    f:SetHeight(150)
+    f:SetPoint("CENTER", UIParent, "CENTER", 0, 100)
     f:SetFrameStrata("DIALOG")
     f:SetFrameLevel(100)
     f:EnableMouse(true)
     f:SetMovable(false)
 
-    local bg = f:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints(f)
-    bg:SetTexture(0, 0, 0, 0.85)
-
-    local border = f:CreateTexture(nil, "BORDER")
-    border:SetPoint("TOPLEFT", f, "TOPLEFT", -2, 2)
-    border:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 2, -2)
-    border:SetTexture("Interface\\DialogFrame\\UI-DialogBox-Border")
+    f:SetBackdrop({
+        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+        tile = true,
+        tileSize = 32,
+        edgeSize = 32,
+        insets = { left = 11, right = 12, top = 12, bottom = 11 }
+    })
 
     local header = f:CreateTexture(nil, "ARTWORK")
     header:SetTexture("Interface\\DialogFrame\\UI-DialogBox-Header")
     header:SetWidth(256)
     header:SetHeight(64)
-    header:SetPoint("TOP", f, "TOP", 0, 18)
+    header:SetPoint("TOP", f, "TOP", 0, 12)
 
     local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     title:SetPoint("TOP", header, "TOP", 0, -14)
     title:SetText("Chat Setup")
 
     local text = f:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-    text:SetPoint("TOP", f, "TOP", 0, -20)
+    text:SetPoint("TOP", f, "TOP", 0, -22)
     text:SetWidth(320)
     text:SetJustifyH("CENTER")
     text:SetText("Set up default chat options for this character?\n\nA 'Spam' window will be created and General will only show LocalDefense.")
@@ -99,7 +97,7 @@ local function CreatePromptDialog()
     local yes = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
     yes:SetWidth(80)
     yes:SetHeight(22)
-    yes:SetPoint("BOTTOM", f, "BOTTOM", -50, 15)
+    yes:SetPoint("BOTTOM", f, "BOTTOM", -50, 16)
     yes:SetText("Yes")
     yes:SetScript("OnClick", function()
         ApplyChatSetup()
@@ -109,11 +107,14 @@ local function CreatePromptDialog()
     local no = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
     no:SetWidth(80)
     no:SetHeight(22)
-    no:SetPoint("BOTTOM", f, "BOTTOM", 50, 15)
+    no:SetPoint("BOTTOM", f, "BOTTOM", 50, 16)
     no:SetText("No")
     no:SetScript("OnClick", function()
-        DB.prompted = true
         f:Hide()
+    end)
+
+    f:SetScript("OnHide", function()
+        DB.prompted = true
     end)
 
     return f
