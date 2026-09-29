@@ -60,7 +60,7 @@ local function ApplyChatSetup()
                 if not string.find(name, "LocalDefense") then
                     ChatFrame_RemoveChannel(ChatFrame1, name)
                 end
-                ChatFrame_AddChannel(spamFrame, name)
+                spamFrame:AddChannel(name)
             end
         end
         Debug("Setup complete.")
