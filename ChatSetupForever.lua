@@ -2,7 +2,6 @@ local addonName, ns = ...
 
 local DB
 local setupFrame = CreateFrame("Frame")
-local promptShown = false
 local channelWaitTicker
 
 local function Debug(msg)
@@ -70,96 +69,63 @@ local function ApplyChatSetup()
     end
 end
 
-local function CreatePromptDialog()
-    local existing = _G["ChatSetupForeverPrompt"]
-    if existing then
-        existing:Show()
-        existing:Raise()
-        Debug("Reusing existing dialog.")
-        return existing
+local function MarkPrompted()
+    DB.prompted = true
+end
+
+local function CreateConfirmDialog()
+    local dialog = _G["ChatSetupForeverPrompt"]
+    if dialog then
+        dialog:Show()
+        return
     end
 
-    local f = CreateFrame("Frame", "ChatSetupForeverPrompt", UIParent, "BackdropTemplate")
-    f:SetSize(360, 150)
-    f:ClearAllPoints()
-    f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-    f:SetFrameStrata("DIALOG")
-    f:SetFrameLevel(200)
-    f:EnableMouse(true)
-    f:SetMovable(true)
-    f:RegisterForDrag("LeftButton")
-    f:SetScript("OnDragStart", f.StartMoving)
-    f:SetScript("OnDragStop", f.StopMovingOrSizing)
+    dialog = CreateFrame("Frame", "ChatSetupForeverPrompt", UIParent, "BackdropTemplate")
+    dialog:SetSize(360, 150)
+    dialog:SetPoint("CENTER", UIParent, "CENTER", 0, 150)
+    dialog:SetFrameStrata("FULLSCREEN_DIALOG")
+    dialog:SetFrameLevel(100)
+    dialog:EnableMouse(true)
+    dialog:SetMovable(true)
+    dialog:RegisterForDrag("LeftButton")
+    dialog:SetScript("OnDragStart", dialog.StartMoving)
+    dialog:SetScript("OnDragStop", dialog.StopMovingOrSizing)
 
-    f:SetBackdrop({
-        bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+    dialog:SetBackdrop({
+        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
         tile = true,
-        tileSize = 16,
-        edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+        tileSize = 32,
+        edgeSize = 32,
+        insets = { left = 11, right = 12, top = 12, bottom = 11 }
     })
-    f:SetBackdropColor(0, 0, 0, 0.9)
 
-    tinsert(UISpecialFrames, f:GetName())
-
-    local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    title:SetPoint("TOP", f, "TOP", 0, -14)
-    title:SetText("Chat Setup")
-
-    local text = f:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-    text:SetPoint("TOP", f, "TOP", 0, -35)
+    local text = dialog:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    text:SetPoint("TOP", dialog, "TOP", 0, -20)
     text:SetWidth(320)
     text:SetJustifyH("CENTER")
     text:SetText("Set up default chat options for this character?\n\nA 'Spam' window will be created and General will only show LocalDefense.")
 
-    local yes = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+    local yes = CreateFrame("Button", nil, dialog, "UIPanelButtonTemplate")
     yes:SetSize(80, 22)
-    yes:SetPoint("BOTTOM", f, "BOTTOM", -50, 16)
+    yes:SetPoint("BOTTOMLEFT", dialog, "BOTTOMLEFT", 40, 20)
     yes:SetText("Yes")
     yes:SetScript("OnClick", function()
         ApplyChatSetup()
-        f:Hide()
+        MarkPrompted()
+        dialog:Hide()
     end)
 
-    local no = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+    local no = CreateFrame("Button", nil, dialog, "UIPanelButtonTemplate")
     no:SetSize(80, 22)
-    no:SetPoint("BOTTOM", f, "BOTTOM", 50, 16)
+    no:SetPoint("BOTTOMRIGHT", dialog, "BOTTOMRIGHT", -40, 20)
     no:SetText("No")
     no:SetScript("OnClick", function()
-        f:Hide()
+        MarkPrompted()
+        dialog:Hide()
     end)
 
-    f:SetScript("OnHide", function()
-        DB.prompted = true
-    end)
-
-    f:Show()
-
-    return f
-end
-
-local function ShowPrompt()
-    if promptShown then
-        Debug("Prompt already shown this session.")
-        return
-    end
-    promptShown = true
-    Debug("Showing prompt...")
-    local dialog = CreatePromptDialog()
     dialog:Show()
-    dialog:Raise()
-
-    C_Timer.After(0, function()
-        Debug("Dialog IsShown: " .. tostring(dialog:IsShown()))
-        Debug("Dialog IsVisible: " .. tostring(dialog:IsVisible()))
-        Debug("Dialog parent: " .. tostring(dialog:GetParent()))
-        Debug("Dialog parent visible: " .. tostring(dialog:GetParent() and dialog:GetParent():IsVisible()))
-        Debug("Dialog alpha: " .. tostring(dialog:GetAlpha()))
-        Debug("Dialog scale: " .. tostring(dialog:GetEffectiveScale()))
-        local left, bottom, width, height = dialog:GetRect()
-        Debug("Dialog rect: " .. (left or "nil") .. ", " .. (bottom or "nil") .. ", " .. (width or "nil") .. ", " .. (height or "nil"))
-    end)
 end
 
 setupFrame:RegisterEvent("ADDON_LOADED")
@@ -175,8 +141,9 @@ setupFrame:SetScript("OnEvent", function(self, event, arg1)
         end
         Debug("Loaded. prompted=" .. tostring(DB.prompted))
     elseif event == "PLAYER_LOGIN" then
-        if DB and not DB.prompted and not promptShown then
-            ShowPrompt()
+        if DB and not DB.prompted then
+            Debug("Showing prompt...")
+            CreateConfirmDialog()
         else
             Debug("Skipping prompt. prompted=" .. tostring(DB and DB.prompted))
         end
@@ -188,11 +155,10 @@ SlashCmdList["CHATSETUPFOREVER"] = function(msg)
     msg = string.lower(msg or "")
     if msg == "reset" then
         DB.prompted = false
-        promptShown = false
         Debug("Reset. Prompt will show on next login or /chatsetup show.")
     elseif msg == "show" then
-        promptShown = false
-        ShowPrompt()
+        Debug("Showing prompt...")
+        CreateConfirmDialog()
     else
         Debug("Usage: /chatsetup show | /chatsetup reset")
     end
