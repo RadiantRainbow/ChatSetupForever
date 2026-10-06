@@ -59,12 +59,6 @@ local function ConfigureLootWindow(frame)
     end
 end
 
-local function RemoveLootFromGeneral()
-    for _, group in ipairs(LOOT_MESSAGE_GROUPS) do
-        ChatFrame_RemoveMessageGroup(ChatFrame1, group)
-    end
-end
-
 local function ApplyChatSetup()
     if channelWaitTicker then
         channelWaitTicker:Cancel()
@@ -120,7 +114,7 @@ local function ApplyChatSetup()
 
     if lootFrame then
         ConfigureLootWindow(lootFrame)
-        RemoveLootFromGeneral()
+        -- Removed: do NOT hide LOOT_MESSAGE_GROUPS from General
         Debug("Loot window configured.")
     else
         Debug("Failed to create Loot window.")
@@ -164,7 +158,7 @@ local function CreateConfirmDialog()
     text:SetPoint("TOP", dialog, "TOP", 0, -20)
     text:SetWidth(320)
     text:SetJustifyH("CENTER")
-    text:SetText("Set up default chat options for this character?\n\nA 'Spam' window will be created, a 'Loot' window for loot/rep/xp/etc., and General will only show LocalDefense.")
+    text:SetText("Set up default chat options for this character?\n\nA 'Spam' window will be created, a 'Loot' window for loot/rep/xp/etc., and General will show LocalDefense plus loot/rep/xp/etc.")
 
     local yes = CreateFrame("Button", nil, dialog, "UIPanelButtonTemplate")
     yes:SetSize(80, 22)
