@@ -1,5 +1,6 @@
 ## Interface: 16001
 ## Title: Chat Setup Forever
 ## Notes: One-time default chat setup for new characters
+## Version: 0.0.14
 ## SavedVariablesPerCharacter: ChatSetupForeverDB
 ChatSetupForever.lua
