@@ -22,6 +22,49 @@ local function HasChannels()
     return #list > 0
 end
 
+-- Message groups matching the "Other" tab options requested for the Loot tab
+local LOOT_MESSAGE_GROUPS = {
+    "COMBAT_XP_GAIN",        -- Experience
+    "COMBAT_HONOR_GAIN",     -- Honor
+    "COMBAT_FACTION_CHANGE", -- Reputation
+    "SKILL",                 -- Skill-ups
+    "LOOT",                  -- Item Loot
+    "CURRENCY",              -- Currency
+    "MONEY",                 -- Money Loot
+}
+
+local function RemoveAllChannelsFromFrame(frame)
+    local channels = {GetChannelList()}
+    local i = 1
+    while i <= #channels do
+        local name = channels[i + 1]
+        i = i + 3
+
+        if type(name) == "string" and name ~= "" then
+            frame:RemoveChannel(name)
+        end
+    end
+end
+
+local function ConfigureLootWindow(frame)
+    -- Uncheck everything in the "Chat" / "Other" left tabs
+    ChatFrame_RemoveAllMessageGroups(frame)
+
+    -- Remove any joined global channels
+    RemoveAllChannelsFromFrame(frame)
+
+    -- Enable only the requested "Other" groups
+    for _, group in ipairs(LOOT_MESSAGE_GROUPS) do
+        ChatFrame_AddMessageGroup(frame, group)
+    end
+end
+
+local function RemoveLootFromGeneral()
+    for _, group in ipairs(LOOT_MESSAGE_GROUPS) do
+        ChatFrame_RemoveMessageGroup(ChatFrame1, group)
+    end
+end
+
 local function ApplyChatSetup()
     if channelWaitTicker then
         channelWaitTicker:Cancel()
@@ -42,6 +85,7 @@ local function ApplyChatSetup()
 
     Debug("Applying chat setup...")
 
+    -- Spam tab: all channels except LocalDefense
     local spamFrame = GetChatFrameByName("Spam")
     if not spamFrame then
         FCF_OpenNewWindow("Spam")
@@ -63,10 +107,26 @@ local function ApplyChatSetup()
                 spamFrame:AddChannel(name)
             end
         end
-        Debug("Setup complete.")
     else
         Debug("Failed to create Spam window.")
     end
+
+    -- Loot tab: only Experience/Honor/Reputation/Skill-ups/Item Loot/Currency/Money Loot
+    local lootFrame = GetChatFrameByName("Loot")
+    if not lootFrame then
+        FCF_OpenNewWindow("Loot")
+        lootFrame = GetChatFrameByName("Loot")
+    end
+
+    if lootFrame then
+        ConfigureLootWindow(lootFrame)
+        RemoveLootFromGeneral()
+        Debug("Loot window configured.")
+    else
+        Debug("Failed to create Loot window.")
+    end
+
+    Debug("Setup complete.")
 end
 
 local function MarkPrompted()
@@ -104,7 +164,7 @@ local function CreateConfirmDialog()
     text:SetPoint("TOP", dialog, "TOP", 0, -20)
     text:SetWidth(320)
     text:SetJustifyH("CENTER")
-    text:SetText("Set up default chat options for this character?\n\nA 'Spam' window will be created and General will only show LocalDefense.")
+    text:SetText("Set up default chat options for this character?\n\nA 'Spam' window will be created, a 'Loot' window for loot/rep/xp/etc., and General will only show LocalDefense.")
 
     local yes = CreateFrame("Button", nil, dialog, "UIPanelButtonTemplate")
     yes:SetSize(80, 22)
