@@ -79,14 +79,18 @@ local function ApplyChatSetup()
 
     Debug("Applying chat setup...")
 
-    -- Spam tab: all channels except LocalDefense
+    local generalFrame = ChatFrame1
+
+    -- Spam tab: all channels except General and LocalDefense
     local spamFrame = GetChatFrameByName("Spam")
     if not spamFrame then
         FCF_OpenNewWindow("Spam")
         spamFrame = GetChatFrameByName("Spam")
     end
 
-    if spamFrame then
+    if not spamFrame then
+        Debug("Failed to create Spam window.")
+    else
         local channels = {GetChannelList()}
         local i = 1
         while i <= #channels do
@@ -95,14 +99,18 @@ local function ApplyChatSetup()
             i = i + 3
 
             if type(name) == "string" and name ~= "" then
-                if not string.find(name, "LocalDefense") then
-                    ChatFrame1:RemoveChannel(name)
+                local isGeneralChannel = string.find(name, "^General")
+                local isLocalDefense = string.find(name, "LocalDefense")
+
+                if isGeneralChannel or isLocalDefense then
+                    generalFrame:AddChannel(name)
+                    spamFrame:RemoveChannel(name)
+                else
+                    generalFrame:RemoveChannel(name)
+                    spamFrame:AddChannel(name)
                 end
-                spamFrame:AddChannel(name)
             end
         end
-    else
-        Debug("Failed to create Spam window.")
     end
 
     -- Loot tab: only Experience/Honor/Reputation/Skill-ups/Item Loot/Currency/Money Loot
@@ -158,7 +166,7 @@ local function CreateConfirmDialog()
     text:SetPoint("TOP", dialog, "TOP", 0, -20)
     text:SetWidth(320)
     text:SetJustifyH("CENTER")
-    text:SetText("Set up default chat options for this character?\n\nA 'Spam' window will be created, a 'Loot' window for loot/rep/xp/etc., and General will show LocalDefense plus loot/rep/xp/etc.")
+    text:SetText("Set up default chat options for this character?\n\nA 'Spam' window will be created, a 'Loot' window for loot/rep/xp/etc., and General will show General, LocalDefense, plus loot/rep/xp/etc.")
 
     local yes = CreateFrame("Button", nil, dialog, "UIPanelButtonTemplate")
     yes:SetSize(80, 22)
